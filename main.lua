@@ -31,7 +31,7 @@ cmds = {
 
 -- this is called by the cnc library when the coolant pin changes
 function onCncCounter(counter)
-  print("Got CNC pin change. counter:" .. counter)
+  print("CNC pin ctr: " .. counter)
   local cmd = queue.getId(counter)
   onCmd(cmd)
   -- led green to show increment
