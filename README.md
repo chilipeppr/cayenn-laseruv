@@ -9,3 +9,4 @@ This code assumes you have installed the Lua firmware on your ESP8266 including 
 
 The laser.lua file also includes code to toggle a main power relay.
 
+![alt text](photo.jpg "")
