@@ -10,3 +10,7 @@ This code assumes you have installed the Lua firmware on your ESP8266 including 
 The laser.lua file also includes code to toggle a main power relay.
 
 ![alt text](photo.jpg "")
+
+Here is how this code is uploaded to the NodeMCU. You use http://chilipeppr.com/nodemcu workspace to edit the code and upload each individual file. The workspace also refers to firmware that is known to work with this Lua code.
+
+![alt text](workspace.png "")
