@@ -1,6 +1,6 @@
 -- Cayenn Queue by using a file
 local m = {}
-
+-- m = {}
 m.filename = "queue.txt"
 m.tmrSend = 1
 
@@ -8,7 +8,7 @@ m.isFileOpen = false
 
 function m.init()
   -- make sure file exists
-  if file.exists(m.filename) == false then
+  if file.exists(m.filename) then
     -- good to go
   else
     m.wipe()
@@ -38,12 +38,25 @@ function m.add(payload)
     -- good. we have an incrementing id
   else
     -- bad. we somehow are moving backwards
-    -- print("Error. Got an ID < lastAddId. ID:" .. payload.Id .. ", lastAddId:" .. m.lastAddId)
+    print("Error. Got an ID < lastAddId. ID:" .. payload.Id .. ", lastAddId:" .. m.lastAddId)
     return
   end
   
   -- open 'queue.txt' in 'a+' mode to append
   file.open(m.filename, "a+")
+  
+  -- based on m.lastAddId we need to decide whether to write 
+  -- empty lines or not
+  if payload.Id == m.lastAddId + 1 then 
+    -- we do not need to advance
+  else 
+    -- we need to write blank lines
+    for ctr = m.lastAddId + 1, payload.Id - 1 do
+      file.writeline("")
+      print("Padded line:", ctr)
+    end
+  end 
+  
   local ok, jsontag = pcall(cjson.encode, payload)
   if ok then
     -- write to the end of the file
@@ -54,6 +67,7 @@ function m.add(payload)
   end
   file.close()
   m.isFileOpen = false
+  m.lastAddId = payload.Id 
 end
 
 -- Get queue item by ID

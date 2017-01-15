@@ -73,14 +73,14 @@ function M.createAnnounce(jsonTagTable)
   a.Announce = "i-am-a-client"
   a.MyDeviceId = "chip:" .. node.chipid() .. "-mac:" .. wifi.sta.getmac()
   
-  if jsonTagTable.Widget then
-    a.Widget = jsonTagTable.Widget
-    -- jsonTagTable.Widget = nil
-  elseif M.jsonTagTable.Widget then
-    a.Widget = M.jsonTagTable.Widget
-  else
-    a.Widget = "com-chilipeppr-widget-undefined"
-  end
+  -- if jsonTagTable.Widget then
+  --   a.Widget = jsonTagTable.Widget
+  --   -- jsonTagTable.Widget = nil
+  -- elseif M.jsonTagTable.Widget then
+  --   a.Widget = M.jsonTagTable.Widget
+  -- else
+  --   a.Widget = "com-chilipeppr-widget-undefined"
+  -- end
   
   -- see if there is a jsontagtable passed in as extra meta
   local jsontag = ""
@@ -134,7 +134,7 @@ end
 -- Keep in mind that your custom payload is in jsonTagTable 
 -- and that gets embedded in the larger JSON packet that
 -- describes this device 
-function M.sendBroadcast(jsonTagTable)
+function M.sendBroadcast(jsonTagTable, ip)
   
   -- if M.isInitted == false then
   --   -- print("You must init first.")
@@ -143,8 +143,7 @@ function M.sendBroadcast(jsonTagTable)
   
   -- we need to attach deviceid 
   local a = {}
-  a.MyDeviceId = "chip:" .. node.chipid() .. "-mac:" .. wifi.sta.getmac()
-
+  
   -- see if there is a jsontagtable passed in as extra meta
   local jsontag = ""
   if jsonTagTable then
@@ -153,11 +152,17 @@ function M.sendBroadcast(jsonTagTable)
       -- print("Adding jsontagtable" .. jsontag)
     else
       print("fail encode jsontag")
+      jsonTagTable = nil 
+      jsontag = nil 
     end
   end
 
   a.JsonTag = jsontag
+  jsontag = nil -- delete from memory
+  jsonTagTable = nil -- delete from memory
   
+  a.MyDeviceId = "chip:" .. node.chipid() .. "-mac:" .. wifi.sta.getmac()
+
   local ok, json = pcall(cjson.encode, a)
   if ok then
     --print("Encoded json for announce: " .. json)
@@ -165,15 +170,28 @@ function M.sendBroadcast(jsonTagTable)
     print("fail encode json")
   end
   
-  local bip = wifi.sta.getbroadcast()
+  a = nil -- delete it 
+  
+  -- local bip = wifi.sta.getbroadcast()
+  if ip == nil then 
+    ip = {} 
+    ip[wifi.sta.getbroadcast()] = true
+  end 
   --print("Broadcast addr:" .. bip)
   
   -- local msg = cjson.encode(jsonTagTable)
   -- local msg = cjson.encode(a)
   -- print("Sending UDP msg: " .. json .. " to ip: " .. bip)
-  M.sock:connect(M.port, bip)
-  M.sock:send(json)
-  M.sock:close()
+  for key,value in pairs(ip) do 
+    -- print(key,value) 
+    -- print("Sending UDP to ip: " .. key .. ", msg: " .. json)
+    M.sock:connect(M.port, key)
+    M.sock:send(json)
+    M.sock:close()
+  end
+  
+  ip = nil -- delete it 
+  json = nil -- delete it 
   
 end
 
@@ -340,3 +358,4 @@ function M.removeListenerOnIncomingCmd(listenerCallback)
 end
 
 return M
+
